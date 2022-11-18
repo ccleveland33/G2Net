@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 class Config:
-### General data #############################################################
+    ### General data #############################################################
     RAW_DATA_PATH = Path(".", "..", "raw_data")
     RAW_TRAIN_PATH = RAW_DATA_PATH.joinpath("train")
     RAW_TEST_PATH = RAW_DATA_PATH.joinpath("test")
@@ -18,7 +18,7 @@ class Config:
 
     N_SAMPLES, N_DETECT = 4096, 3
 
-### Data preprocessing #######################################################
+    ### Data preprocessing #######################################################
     GENERATE_TFR = False
     FILES_PER_TFR = 11200
     TFR_DATA_PATH = Path(".", "..", "tfr_data")
@@ -30,7 +30,7 @@ class Config:
     TRAIN_PATH = DATA_PATH.joinpath("train")
     TEST_PATH = DATA_PATH.joinpath("test")
 
-### Training #################################################################
+    ### Training #################################################################
     FROM_TFR = False
     MODEL_TRAIN = True
     MODEL_SAVE_NAME = "Model_publication_ref_small.h5"
@@ -50,12 +50,12 @@ class Config:
     EPOCHS = 4
     LEARNING_RATE = 0.0001
     
-### Prediction ################################################################
+    ### Prediction ################################################################
     MODEL_PREDICT = False
     PREDICTIONS_NAME = "submission.csv"
 
 
-### Model ####################################################################
+    ### Model ####################################################################
     TUKEY_SHAPE = 0.2
     TRAINABLE_TUKEY = True
 

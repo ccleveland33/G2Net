@@ -14,10 +14,7 @@ from tensorflow.data.experimental import AUTOTUNE
 from .TFRDatasetCreator import TFRDatasetCreator
 from config import Config
 
-
-
 ##############################################################################
-
 class DatasetGeneratorTF(object):
     """
     Class to aid in the creation of dataset pipelines using tensorflow.
@@ -219,6 +216,4 @@ class DatasetGeneratorTF(object):
             repeat, target) if tfrec else self._get_dataset_from_npy(
             shuffle, buffer_size, repeat, target)
         return ret_val
-            
-
 ##############################################################################

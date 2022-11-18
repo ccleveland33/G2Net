@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Aug 10 08:50:33 2021
-
-@author: salva
+Created on Nov 18th, 2021
 """
 
 import tensorflow as tf
@@ -30,8 +28,7 @@ class Acceleration(object):
 
         except:
             strategy = tf.distribute.get_strategy()
-            device ="GPU" if "GPU" in [d.device_type for d in 
-                                   device_lib.list_local_devices()] else "CPU"
+            device = "GPU" if "GPU" in [d.device_type for d in device_lib.list_local_devices()] else "CPU"
 
         print(device, "Number of replicas:", strategy.num_replicas_in_sync)
         return strategy, device
