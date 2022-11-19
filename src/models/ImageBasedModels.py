@@ -5,17 +5,17 @@ Created on Wed Jul 28 16:27:02 2021
 @author: salva
 """
 
-import tensorflow as tf
 import copy
-from tensorflow.keras.layers import Input, Dense, Flatten
-from tensorflow.keras.layers.experimental.preprocessing import Resizing
 from typing import Tuple
+
+import tensorflow as tf
+from automl.efficientnetv2 import effnetv2_configs
+from automl.efficientnetv2 import effnetv2_model
+from automl.efficientnetv2 import hparams
 from preprocess import CQTLayer, TukeyWinLayer, BandpassLayer, WindowingLayer
 from preprocess import PermuteChannel, SpectralMask, TimeMask, FreqMask
-
-from automl.efficientnetv2 import effnetv2_model
-from automl.efficientnetv2 import effnetv2_configs
-from automl.efficientnetv2 import hparams
+from tensorflow.keras.layers import Input, Dense, Flatten
+from tensorflow.keras.layers.experimental.preprocessing import Resizing
 
 
 ##############################################################################
@@ -24,12 +24,13 @@ class G2NetEfficientNet(object):
     """
     G2Net model for images based on EfficientNet
     """
+
     def __init__(
-            self, 
+            self,
             input_shape: Tuple[int, int],
             window_shape: float = 0.2,
             trainable_window: bool = False,
-            sample_rate: float = 2048., 
+            sample_rate: float = 2048.,
             degree_filt: int = 8,
             f_band_filt: Tuple[float, float] = (20., 500.),
             trainable_filt: bool = False,
@@ -37,7 +38,7 @@ class G2NetEfficientNet(object):
             f_band_spec: Tuple[float, float] = (20., 500.),
             bins_per_octave: int = 12,
             window_cqt: str = "hann",
-            perc_range: float = 0.05, 
+            perc_range: float = 0.05,
             trainable_cqt: bool = False,
             resize_shape: Tuple[int, int] = (128, 128),
             p_perm: float = 0.1,
@@ -48,7 +49,7 @@ class G2NetEfficientNet(object):
             w_mask_f: Tuple[int, int] = (12, 25),
             dtype: type = tf.float32,
             strategy: str = "GPU"
-        ) -> None:
+    ) -> None:
         """
         Function to initialise the object.
         
@@ -123,47 +124,46 @@ class G2NetEfficientNet(object):
         self.n_max_mask_t = n_max_mask_t
         self.n_max_mask_f = n_max_mask_f
 
-        self.input = Input(shape = input_shape, dtype = dtype, name = "input")
+        self.input = Input(shape=input_shape, dtype=dtype, name="input")
 
         if self.strategy == "TPU":
-            self.window = WindowingLayer(window = ("tukey", window_shape),
-                                         window_len = input_shape[0],
-                                         trainable = trainable_window, name = "window")
+            self.window = WindowingLayer(window=("tukey", window_shape),
+                                         window_len=input_shape[0],
+                                         trainable=trainable_window, name="window")
         else:
-            self.window = TukeyWinLayer(initial_alpha = window_shape, 
-                                        trainable = trainable_window, name = "window")
+            self.window = TukeyWinLayer(initial_alpha=window_shape,
+                                        trainable=trainable_window, name="window")
 
-        self.bandpass = BandpassLayer(sample_rate = sample_rate, degree = degree_filt, 
-                                      f_band = f_band_filt, n_samples = input_shape[0], 
-                                      trainable = trainable_filt, name = "bandpass")
-        
+        self.bandpass = BandpassLayer(sample_rate=sample_rate, degree=degree_filt,
+                                      f_band=f_band_filt, n_samples=input_shape[0],
+                                      trainable=trainable_filt, name="bandpass")
+
         tpu = True if strategy == "TPU" else False
-        self.cqt = CQTLayer(sample_rate = sample_rate, hop_length = hop_length, 
-                            f_band = f_band_spec, bins_per_octave = bins_per_octave,
-                            window = window_cqt, trainable = trainable_cqt, 
-                            perc_range = perc_range, tpu = tpu, name = "cqt")
+        self.cqt = CQTLayer(sample_rate=sample_rate, hop_length=hop_length,
+                            f_band=f_band_spec, bins_per_octave=bins_per_octave,
+                            window=window_cqt, trainable=trainable_cqt,
+                            perc_range=perc_range, tpu=tpu, name="cqt")
 
-        self.resize = Resizing(resize_shape[0], resize_shape[1], name = "resize")
+        self.resize = Resizing(resize_shape[0], resize_shape[1], name="resize")
 
-        self.permute = PermuteChannel(p = p_perm, name = "permute")
-        
+        self.permute = PermuteChannel(p=p_perm, name="permute")
+
         if self.strategy == "TPU":
-            self.mask_t = TimeMask(p = p_mask, w_mask = w_mask_t, name = "mask_t")
-            self.mask_f = FreqMask(p = p_mask, w_mask = w_mask_f, name = "mask_f")
+            self.mask_t = TimeMask(p=p_mask, w_mask=w_mask_t, name="mask_t")
+            self.mask_f = FreqMask(p=p_mask, w_mask=w_mask_f, name="mask_f")
         else:
-            self.mask = SpectralMask(p = p_mask, n_max_mask_t = self.n_max_mask_t,
-                                     w_mask_t = w_mask_t, n_max_mask_f = self.n_max_mask_f,
-                                     w_mask_f = w_mask_f, name = "mask")
+            self.mask = SpectralMask(p=p_mask, n_max_mask_t=self.n_max_mask_t,
+                                     w_mask_t=w_mask_t, n_max_mask_f=self.n_max_mask_f,
+                                     w_mask_f=w_mask_f, name="mask")
 
-        self.flatten = Flatten(name = "flatten")
-        self.dense = Dense(units = 1, activation = "sigmoid", name = "dense")
-
+        self.flatten = Flatten(name="flatten")
+        self.dense = Dense(units=1, activation="sigmoid", name="dense")
 
     def get_model(
             self,
             effnet_id: str = "efficientnetv2-b2",
             weights: str = "imagenet",
-        ) -> tf.keras.Model:
+    ) -> tf.keras.Model:
         """
         Function to get the model object.
 
@@ -204,9 +204,9 @@ class G2NetEfficientNet(object):
         if self.strategy == "TPU" and not effnet_config.model.bn_type:
             effnet_config.model.bn_type = "tpu_bn"
 
-        effnet = effnetv2_model.get_model(model_name = effnet_id,
-            model_config = effnet_config.model, include_top = False, 
-            weights = weights)
+        effnet = effnetv2_model.get_model(model_name=effnet_id,
+                                          model_config=effnet_config.model, include_top=False,
+                                          weights=weights)
 
         x = self.input
 
@@ -229,7 +229,6 @@ class G2NetEfficientNet(object):
         y = effnet(y)
         y = self.flatten(y)
         y = self.dense(y)
-        return tf.keras.Model(inputs = [x], outputs = [y])
-
+        return tf.keras.Model(inputs=[x], outputs=[y])
 
 ##############################################################################

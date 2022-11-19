@@ -21,7 +21,7 @@ class CosineAnnealingRestarts(tf.keras.experimental.CosineDecayRestarts):
             self,
             dtype: type = tf.float32,
             **kwargs
-        ) -> None:
+    ) -> None:
         """
         Object initialization function.
 
@@ -34,10 +34,9 @@ class CosineAnnealingRestarts(tf.keras.experimental.CosineDecayRestarts):
         super(CosineAnnealingRestarts, self).__init__(**kwargs)
         self.dtype = dtype
 
-
     def __float__(
             self
-        ) -> float:
+    ) -> float:
         """
         Magic method for float() calls.
 
@@ -48,12 +47,11 @@ class CosineAnnealingRestarts(tf.keras.experimental.CosineDecayRestarts):
         """
 
         return self.initial_learning_rate
-    
 
     def assign(
             self,
             learning_rate: float
-        ) -> float:
+    ) -> float:
         """
         Method to set the value of the initial learning rate.
 
@@ -64,6 +62,5 @@ class CosineAnnealingRestarts(tf.keras.experimental.CosineDecayRestarts):
         """
 
         self.initial_learning_rate = float(learning_rate)
-
 
 ##############################################################################

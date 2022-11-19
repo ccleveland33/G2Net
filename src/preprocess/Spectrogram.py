@@ -5,12 +5,12 @@ Created on Tue Aug 17 23:02:45 2021
 @author: salva
 """
 
-import tensorflow as tf
-import numpy as np
 import warnings
-from scipy import signal
 from typing import Tuple, Mapping, Union
 
+import numpy as np
+import tensorflow as tf
+from scipy import signal
 from utilities import GeneralUtilities
 
 
@@ -32,16 +32,16 @@ class CQTLayer(tf.keras.layers.Layer):
     """
 
     def __init__(
-            self, 
-            sample_rate: float = 2048., 
-            hop_length: int = 32, 
-            n_bins = 84,
+            self,
+            sample_rate: float = 2048.,
+            hop_length: int = 32,
+            n_bins=84,
             bins_per_octave: int = 12,
             f_band: Tuple[float, float] = (0., None),
             norm: int = 1,
             filter_scale: int = 1,
             window: str = "hann",
-            center: bool = True, 
+            center: bool = True,
             pad_mode: str = "reflect",
             norm_type: str = "librosa",
             image_out: bool = True,
@@ -49,7 +49,7 @@ class CQTLayer(tf.keras.layers.Layer):
             minmax_init: Tuple[float, float] = (0, -1e7),
             tpu: bool = False,
             **kwargs
-        ) -> None:
+    ) -> None:
         """
         Function to initialise the object.
 
@@ -110,7 +110,7 @@ class CQTLayer(tf.keras.layers.Layer):
         tpu : str, optional
             Whether this layer is to be applied in TPU or not. The default is False. 
         """
-    
+
         super(CQTLayer, self).__init__(**kwargs)
         self.sample_rate = sample_rate
         self.n_bins = n_bins
@@ -134,37 +134,37 @@ class CQTLayer(tf.keras.layers.Layer):
 
         cqt_kernels_real = np.swapaxes(cqt_kernels.real[:, np.newaxis, :], 0, -1)
         cqt_kernels_imag = np.swapaxes(cqt_kernels.imag[:, np.newaxis, :], 0, -1)
-        
-        self.cqt_kernels_real = tf.Variable(initial_value = cqt_kernels_real, 
-                                            trainable = self.trainable,
-                                            name = self.name + "/real_kernels", 
-                                            dtype = self.dtype)
-        self.cqt_kernels_imag = tf.Variable(initial_value = cqt_kernels_imag, 
-                                            trainable = self.trainable,
-                                            name = self.name + "/imag_kernels",
-                                            dtype = self.dtype)
+
+        self.cqt_kernels_real = tf.Variable(initial_value=cqt_kernels_real,
+                                            trainable=self.trainable,
+                                            name=self.name + "/real_kernels",
+                                            dtype=self.dtype)
+        self.cqt_kernels_imag = tf.Variable(initial_value=cqt_kernels_imag,
+                                            trainable=self.trainable,
+                                            name=self.name + "/imag_kernels",
+                                            dtype=self.dtype)
 
         padding = tf.constant([[0, 0], [kernel_width // 2, kernel_width // 2],
                                [0, 0]])
-    
+
         self.padding_fn = lambda x: x
         self.padding_conv = "VALID"
         if center:
             if self.tpu:
                 self.padding_conv = "SAME"
-                warnings.warn("Using TPU, changing to compatible version", 
+                warnings.warn("Using TPU, changing to compatible version",
                               SyntaxWarning)
             else:
                 if pad_mode == "constant":
-                    self.padding_fn = lambda x: tf.pad(x, padding, mode = "CONSTANT")
+                    self.padding_fn = lambda x: tf.pad(x, padding, mode="CONSTANT")
                 elif pad_mode == "reflect":
-                    self.padding_fn = lambda x: tf.pad(x, padding, mode = "REFLECT")
+                    self.padding_fn = lambda x: tf.pad(x, padding, mode="REFLECT")
                 else:
-                    warnings.warn("Padding method not recognised, applying no padding", 
+                    warnings.warn("Padding method not recognised, applying no padding",
                                   SyntaxWarning)
-                
+
         self.norm_factor = 1.
-        lengths = tf.constant(lengths, dtype = self.cqt_kernels_real.dtype)
+        lengths = tf.constant(lengths, dtype=self.cqt_kernels_real.dtype)
         if norm_type == "librosa":
             self.norm_factor = tf.math.sqrt(lengths)
         elif norm_type == "convolutional":
@@ -173,22 +173,21 @@ class CQTLayer(tf.keras.layers.Layer):
             self.norm_factor = 2.
         else:
             warnings.warn("Normalization method not recognised, \
-                          applying convolutional normalization", 
+                          applying convolutional normalization",
                           SyntaxWarning)
-                
-        self.image_out = image_out
-        self.max = tf.Variable(initial_value = minmax_init[-1], 
-                               name = self.name + "/max", 
-                               dtype = self.dtype)
-        self.min = tf.Variable(initial_value = minmax_init[0], 
-                               name = self.name + "/min", 
-                               dtype = self.dtype)
 
+        self.image_out = image_out
+        self.max = tf.Variable(initial_value=minmax_init[-1],
+                               name=self.name + "/max",
+                               dtype=self.dtype)
+        self.min = tf.Variable(initial_value=minmax_init[0],
+                               name=self.name + "/min",
+                               dtype=self.dtype)
 
     def build(
-            self, 
+            self,
             input_shape: Tuple[int, int]
-        ) -> None:
+    ) -> None:
         """
         Function to build the graph of the layer. Adds trainable and non-
         trainable parameters.
@@ -211,12 +210,11 @@ class CQTLayer(tf.keras.layers.Layer):
 
         super(CQTLayer, self).build(input_shape)
 
-
     def call(
-            self, 
+            self,
             data: tf.Tensor,
             training: bool = None
-        ) -> tf.Tensor:
+    ) -> tf.Tensor:
         """
         Forward pass of the layer.
 
@@ -241,12 +239,12 @@ class CQTLayer(tf.keras.layers.Layer):
             x = tf.cast(x, self.dtype)
             if not self.tpu:
                 x = self.padding_fn(x)
-            x_real = tf.nn.conv1d(x, self.cqt_kernels_real, 
-                                  stride = self.hop_length, 
-                                  padding = self.padding_conv)
-            x_imag = -tf.nn.conv1d(x, self.cqt_kernels_imag, 
-                                   stride = self.hop_length, 
-                                   padding = self.padding_conv)
+            x_real = tf.nn.conv1d(x, self.cqt_kernels_real,
+                                  stride=self.hop_length,
+                                  padding=self.padding_conv)
+            x_imag = -tf.nn.conv1d(x, self.cqt_kernels_imag,
+                                   stride=self.hop_length,
+                                   padding=self.padding_conv)
             x_real *= self.norm_factor
             x_imag *= self.norm_factor
             x = tf.pow(x_real, 2) + tf.pow(x_imag, 2)
@@ -254,32 +252,31 @@ class CQTLayer(tf.keras.layers.Layer):
                 x += 1e-8
             x = tf.math.sqrt(x)
             x = tf.transpose(x, [0, 2, 1])
-            x = tf.expand_dims(x, axis = -1)
-            CQT = x if (i == 0) else tf.concat([CQT, x], axis = -1)
-            
+            x = tf.expand_dims(x, axis=-1)
+            CQT = x if (i == 0) else tf.concat([CQT, x], axis=-1)
+
         if self.image_out:
             if training:
                 max_batch = tf.stop_gradient(tf.reduce_max(CQT))
                 max_val = tf.stop_gradient(tf.math.maximum(self.max, max_batch))
                 min_batch = tf.stop_gradient(tf.reduce_min(CQT))
                 min_val = tf.stop_gradient(tf.math.minimum(self.min, min_batch))
-        
+
                 self.max.assign(max_val)
                 self.min.assign(min_val)
 
             r_minmax = tf.stop_gradient(self.max - self.min)
             min_val = tf.stop_gradient(self.min)
             max_val = tf.stop_gradient(self.max + self.perc_range * r_minmax)
-            CQT = (CQT - min_val)/(max_val - min_val)
-            
-            CQT = tf.clip_by_value(CQT, clip_value_min = 0., clip_value_max = 1.)
+            CQT = (CQT - min_val) / (max_val - min_val)
+
+            CQT = tf.clip_by_value(CQT, clip_value_min=0., clip_value_max=1.)
 
         return CQT
 
-
     def get_config(
             self
-        ) -> Mapping[str, float]:
+    ) -> Mapping[str, float]:
         """
         Function to get the configuration parameters of the object.
         
@@ -305,7 +302,7 @@ class CQTLayer(tf.keras.layers.Layer):
             "minmax_init": self.minmax_init,
             "tpu": self.tpu
         }
-        
+
         config.update(super(CQTLayer, self).get_config())
         return config
 
@@ -327,7 +324,7 @@ class _Utilities(object):
             bins_per_octave: int = 12,
             norm: int = 1,
             window: Union[str, Tuple[float, str]] = "hann"
-        ) -> Tuple[np.ndarray, int, np.ndarray, np.ndarray]:
+    ) -> Tuple[np.ndarray, int, np.ndarray, np.ndarray]:
         """
         Function to automatically create CQT kernels in time domain.
         
@@ -373,7 +370,7 @@ class _Utilities(object):
 
         len_min = np.ceil(q * sample_rate / f_min)
         fft_len = 2 ** np.int(np.ceil(np.log2(len_min)))
-    
+
         if (f_max is not None) and (n_bins is None):
             n_bins = np.ceil(bins_per_octave * np.log2(f_max / f_min))
             freqs = f_min * 2. ** (np.r_[0:n_bins] / np.float(bins_per_octave))
@@ -389,8 +386,8 @@ class _Utilities(object):
             raise ValueError(f"The top bin {np.max(freqs)} Hz has exceeded \
                              the Nyquist frequency, please reduce `n_bins`")
 
-        kernel = np.zeros((np.int(n_bins), np.int(fft_len)), dtype = np.complex64)
-    
+        kernel = np.zeros((np.int(n_bins), np.int(fft_len)), dtype=np.complex64)
+
         lengths = np.ceil(q * sample_rate / freqs)
         for k in range(np.int(n_bins)):
             freq = freqs[k]
@@ -400,11 +397,11 @@ class _Utilities(object):
                 start = np.int(np.ceil(fft_len / 2. - l / 2.)) - 1
             else:
                 start = np.int(np.ceil(fft_len / 2. - l / 2.))
-    
-            sig = signal.get_window(window, np.int(l), fftbins = True)
+
+            sig = signal.get_window(window, np.int(l), fftbins=True)
             sig = sig * np.exp(np.r_[-l // 2:l // 2] * 1j * 2 * np.pi * \
                                freq / sample_rate) / l
-            
+
             if norm:
                 kernel[k, start:start + np.int(l)] = sig / np.linalg.norm(sig, norm)
             else:
@@ -412,7 +409,4 @@ class _Utilities(object):
 
         return kernel, fft_len, lengths, freqs
 
-    
 ##############################################################################
-
-

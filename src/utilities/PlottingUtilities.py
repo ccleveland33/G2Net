@@ -5,11 +5,11 @@ Created on Tue Jul 27 21:54:07 2021
 @author: salva
 """
 
-import numpy as np
-import seaborn as sns
-import pandas as pd
-import matplotlib.pyplot as plt
 import librosa.display
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
 
 
 ##############################################################################
@@ -25,13 +25,12 @@ class PlottingUtilities(object):
     mag_tag = "Strain [-]"
     detector = ("LIGO Hanford", "LIGO Livingston", "Virgo")
 
-
     @classmethod
     def plot_wave(
             cls,
-            waveforms: np.ndarray, 
+            waveforms: np.ndarray,
             timespan: float = 2.
-        ) -> None:
+    ) -> None:
         """
         Function to plot waves from the 3 detectors.
 
@@ -45,30 +44,29 @@ class PlottingUtilities(object):
         if waveforms.shape[-1] != 3:
             raise ValueError("Function expects exactly data for 3 detectors")
 
-        time = np.linspace(0., timespan, waveforms.shape[0]) [:, np.newaxis]
+        time = np.linspace(0., timespan, waveforms.shape[0])[:, np.newaxis]
         min_val, max_val = waveforms.min(), waveforms.max()
-        dataframe = pd.DataFrame(data = np.hstack((time, waveforms)), 
-                                 columns = [cls.time_tag, 
-                                            cls.mag_tag + " " + cls.detector[0], 
-                                            cls.mag_tag + " " + cls.detector[1], 
-                                            cls.mag_tag + " " + cls.detector[2]])
+        dataframe = pd.DataFrame(data=np.hstack((time, waveforms)),
+                                 columns=[cls.time_tag,
+                                          cls.mag_tag + " " + cls.detector[0],
+                                          cls.mag_tag + " " + cls.detector[1],
+                                          cls.mag_tag + " " + cls.detector[2]])
 
         plt.style.use("seaborn")
-        fig, axes = plt.subplots(3, 1, figsize = (15, 10))
+        fig, axes = plt.subplots(3, 1, figsize=(15, 10))
         for i in range(len(cls.detector)):
-            sns.lineplot(data = dataframe, x = cls.time_tag, 
-                         y = cls.mag_tag + " " + cls.detector[i], ax = axes[i])
+            sns.lineplot(data=dataframe, x=cls.time_tag,
+                         y=cls.mag_tag + " " + cls.detector[i], ax=axes[i])
             axes[i].legend([cls.detector[i]])
             axes[i].set_ylabel(cls.mag_tag)
             axes[i].set_ylim(min_val, max_val)
-    
 
     @classmethod
     def plot_spectrogram(
             cls,
             spectrogram: np.ndarray,
             **kwargs
-        ) -> None:
+    ) -> None:
         """
         Function to plot a spectrogram.
 
@@ -81,20 +79,18 @@ class PlottingUtilities(object):
             raise ValueError("Function expects exactly data for 3 detectors")
 
         plt.style.use("seaborn")
-        fig, axes = plt.subplots(1, len(cls.detector), figsize = (15, 5))
+        fig, axes = plt.subplots(1, len(cls.detector), figsize=(15, 5))
         for i in range(len(cls.detector)):
-            librosa.display.specshow(data = spectrogram[..., i], 
-                                     ax = axes[i], **kwargs)
+            librosa.display.specshow(data=spectrogram[..., i],
+                                     ax=axes[i], **kwargs)
             axes[i].set_xlabel(cls.time_tag)
             axes[i].set_ylabel(cls.freq_tag)
             axes[i].set_title(cls.detector[i])
-      
-        
-      
+
     @staticmethod
     def plot_count(
             dataframe: pd.DataFrame
-        ) -> None:
+    ) -> None:
         """
         Function to display a barplot with the positive and negative examples.
 
@@ -105,10 +101,9 @@ class PlottingUtilities(object):
         """
 
         plt.style.use("seaborn")
-        fig, axes = plt.subplots(1, 1, figsize = (8, 4))
-        sns.countplot(data = dataframe, x = "target")
+        fig, axes = plt.subplots(1, 1, figsize=(8, 4))
+        sns.countplot(data=dataframe, x="target")
         axes.set_xlabel("Targets")
         axes.set_ylabel("Count [#]")
-        
+
 ##############################################################################
-    

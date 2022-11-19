@@ -5,9 +5,9 @@ Created on Nov 18th, 2021
 
 # Import configuration modules
 import sys
-from config import Config
 from pathlib import Path
 from git import Repo
+from config import Config
 
 # Configure path to use automl efficientnet models
 if Config.AUTOML_PATH not in sys.path:
@@ -28,7 +28,7 @@ import tensorflow as tf
 from utilities import PlottingUtilities, GeneralUtilities
 from ingest import TFRDatasetCreator, NPYDatasetCreator, DatasetGeneratorTF
 from models import G2NetEfficientNet
-from train import Acceleration  # , RocLoss, CosineAnnealingRestarts
+from train import Acceleration
 
 if __name__ == "__main__":
     ##############################################################################
@@ -66,7 +66,6 @@ if __name__ == "__main__":
         npy_test.create_dataset(Config.TEST_PATH, dtype=np.float32, n_processes=Config.N_PROCESSES)
 
     ##############################################################################
-
     # Create datasets from preprocessed tensorflow records splitting labelled dataset
     # into training and validation set
     if Config.FROM_TFR:
@@ -170,7 +169,6 @@ if __name__ == "__main__":
         model.summary()
 
     ##############################################################################
-
     # Preload model weights
     if Config.MODEL_PRELOAD:
         pretrained_model = Config.MODEL_PATH.joinpath(Config.MODEL_PRELOAD_NAME)
@@ -182,7 +180,6 @@ if __name__ == "__main__":
         model.get_layer("cqt").trainable = Config.TRAINABLE_CQT
 
     ##############################################################################
-
     # Train model with training and validation sets with checkpoints and control
     # over training validation loss plateaus
     if Config.MODEL_TRAIN:
@@ -208,7 +205,6 @@ if __name__ == "__main__":
         train_hist_df.to_csv(data_path.Config.HISTORY_NAME, index=False)
 
     ##############################################################################
-
     # Predict on test set and save to submission file
     if Config.MODEL_PREDICT:
         preds_test = model.predict(test_ds, batch_size=Config.BATCH_SIZE_TEST, steps=spe_test, verbose=1)
@@ -222,7 +218,6 @@ if __name__ == "__main__":
         sub_df.to_csv(data_path.joinpath(Config.PREDICTIONS_NAME), index=False)
 
     ##############################################################################
-
     # Plot an example if requested
     if Config.PLOT_EXAMPLE:
 
@@ -272,5 +267,4 @@ if __name__ == "__main__":
         PlottingUtilities.plot_spectrogram(y_spec)
         PlottingUtilities.plot_spectrogram(y_masked)
         PlottingUtilities.plot_count(train_df_ori)
-
 ##############################################################################

@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Jul 29 18:54:23 2021
-
-@author: salva
+Created on Nov 18th, 2021
 """
+from pathlib import Path, os
 
-import tensorflow as tf
 import numpy as np
 import pandas as pd
-from pathlib import Path, os
+import tensorflow as tf
 from tensorflow.data.experimental import AUTOTUNE
 
-from .TFRDatasetCreator import TFRDatasetCreator
-from config import Config
+from src.config import Config
+from ingest.TFRDatasetCreator import TFRDatasetCreator
+
 
 ##############################################################################
 class DatasetGeneratorTF(object):
@@ -28,14 +27,14 @@ class DatasetGeneratorTF(object):
             dtype: type = tf.float32,
             raw_dir: bool = False,
             ext: str = ".tfrec"
-        ) -> None:
+    ) -> None:
         """
         Function to initialise the object.
 
         Parameters
         ----------
         dataframe : pd.DataFrame, columns = (id, targets)
-            Dataframe with the indeces of the samples.
+            Dataframe with the indices of the samples.
         datadir : Path
             Data directory.
         batch_size : int, optional
@@ -62,11 +61,10 @@ class DatasetGeneratorTF(object):
         else:
             self.df["path"] = str(datadir) + os.sep + dataframe["id"].astype(str) + ext
 
-
     def _read_npy(
-            self, 
+            self,
             filename: Path
-        ) -> np.ndarray:
+    ) -> np.ndarray:
         """
         Auxiliary method to read data from npy file.
 
@@ -84,14 +82,13 @@ class DatasetGeneratorTF(object):
         example_data = tf.cast(np.load(filename), self.dtype)
         return example_data
 
-
     def _get_dataset_from_npy(
             self,
             shuffle: bool = True,
             buffer_size: int = 1024,
             repeat: bool = True,
             target: bool = True
-        ) -> tf.data.Dataset:
+    ) -> tf.data.Dataset:
         """
         Function to get the dataset pipeline from npy files.
 
@@ -114,8 +111,8 @@ class DatasetGeneratorTF(object):
 
         feature_ds = tf.data.Dataset.from_tensor_slices(self.df["path"])
         feature_ds = feature_ds.map(lambda x: tf.numpy_function(
-            self._read_npy, [x], self.dtype), 
-            num_parallel_calls = AUTOTUNE)
+            self._read_npy, [x], self.dtype),
+                                    num_parallel_calls=AUTOTUNE)
 
         if target:
             label_ds = tf.data.Dataset.from_tensor_slices(self.df["target"])
@@ -125,13 +122,12 @@ class DatasetGeneratorTF(object):
 
         if shuffle:
             ds = ds.shuffle(buffer_size)
-        
+
         if repeat:
             ds = ds.repeat()
 
         ds = ds.batch(self.batch_size)
         return ds.prefetch(AUTOTUNE)
-
 
     def _get_dataset_from_tfrec(
             self,
@@ -140,7 +136,7 @@ class DatasetGeneratorTF(object):
             ordered: bool = False,
             repeat: bool = True,
             target: bool = True
-        ) -> tf.data.Dataset:
+    ) -> tf.data.Dataset:
         """
         Function to get the dataset pipeline from tensorflow records.
 
@@ -163,7 +159,7 @@ class DatasetGeneratorTF(object):
             Dataset pipeline.
         """
 
-        ds = tf.data.TFRecordDataset(self.df["path"], num_parallel_reads = AUTOTUNE)
+        ds = tf.data.TFRecordDataset(self.df["path"], num_parallel_reads=AUTOTUNE)
 
         if not ordered:
             ignore_order = tf.data.Options()
@@ -171,28 +167,27 @@ class DatasetGeneratorTF(object):
             ds = ds.with_options(ignore_order)
 
         ds = ds.map(lambda x: TFRDatasetCreator.deserialize_example(
-            x, dtype = self.dtype, target = target, shape = (Config.N_SAMPLES, 
-            Config.N_DETECT)), num_parallel_calls = AUTOTUNE)
+            x, dtype=self.dtype, target=target, shape=(Config.N_SAMPLES,
+                                                       Config.N_DETECT)), num_parallel_calls=AUTOTUNE)
 
         if shuffle:
             ds = ds.shuffle(buffer_size)
 
         if repeat:
             ds = ds.repeat()
-        
-        ds = ds.batch(self.batch_size, drop_remainder = target)
-        return ds.prefetch(AUTOTUNE)
 
+        ds = ds.batch(self.batch_size, drop_remainder=target)
+        return ds.prefetch(AUTOTUNE)
 
     def get_dataset(
             self,
-            tfrec: bool = True, 
+            tfrec: bool = True,
             shuffle: bool = True,
             buffer_size: int = 1024,
             ordered: bool = False,
             repeat: bool = True,
             target: bool = True
-        ) -> tf.data.Dataset:
+    ) -> tf.data.Dataset:
         """
         Function to get the dataset pipeline.
 
@@ -211,9 +206,9 @@ class DatasetGeneratorTF(object):
         tf.data.Dataset
             Dataset pipeline.
         """
-        
+
         ret_val = self._get_dataset_from_tfrec(shuffle, buffer_size, ordered,
-            repeat, target) if tfrec else self._get_dataset_from_npy(
+                                               repeat, target) if tfrec else self._get_dataset_from_npy(
             shuffle, buffer_size, repeat, target)
         return ret_val
 ##############################################################################

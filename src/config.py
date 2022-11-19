@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 class Config:
-    ### General data #############################################################
+    # General data #############################################################
     RAW_DATA_PATH = Path(".", "..", "raw_data")
     RAW_TRAIN_PATH = RAW_DATA_PATH.joinpath("train")
     RAW_TEST_PATH = RAW_DATA_PATH.joinpath("test")
@@ -18,19 +18,19 @@ class Config:
 
     N_SAMPLES, N_DETECT = 4096, 3
 
-    ### Data preprocessing #######################################################
-    GENERATE_TFR = False
+    # Data preprocessing #######################################################
+    GENERATE_TFR = True  # False
     FILES_PER_TFR = 11200
     TFR_DATA_PATH = Path(".", "..", "tfr_data")
     TFR_TRAIN_PATH = TFR_DATA_PATH.joinpath("train")
     TFR_TEST_PATH = TFR_DATA_PATH.joinpath("test")
 
-    GENERATE_NPY = False
+    GENERATE_NPY = True  # False
     DATA_PATH = Path(".", "..", "data")
     TRAIN_PATH = DATA_PATH.joinpath("train")
     TEST_PATH = DATA_PATH.joinpath("test")
 
-    ### Training #################################################################
+    # Training #################################################################
     FROM_TFR = False
     MODEL_TRAIN = True
     MODEL_SAVE_NAME = "Model_publication_ref_small.h5"
@@ -38,7 +38,7 @@ class Config:
     MODEL_PRELOAD_NAME = "Model_publication_ref_small.h5"
     MODEL_PATH = Path(".", "..", "saved_models")
     HISTORY_NAME = "history_train.csv"
-    
+
     AUTOML_PATH = str(Path(".", "automl").absolute())
     EFFNETV2_PATH = str(Path(AUTOML_PATH).joinpath("efficientnetv2").absolute())
     AUTOML_GIT_URL = "https://github.com/google/automl.git"
@@ -49,13 +49,12 @@ class Config:
     BATCH_SIZE_TEST = 32
     EPOCHS = 4
     LEARNING_RATE = 0.0001
-    
-    ### Prediction ################################################################
+
+    # Prediction ################################################################
     MODEL_PREDICT = False
     PREDICTIONS_NAME = "submission.csv"
 
-
-    ### Model ####################################################################
+    # Model ####################################################################
     TUKEY_SHAPE = 0.2
     TRAINABLE_TUKEY = True
 
@@ -69,7 +68,7 @@ class Config:
     BINS_PER_OCTAVE = 12
     WINDOW_CQT = "hann"
     TRAINABLE_CQT = True
-    
+
     IMAGE_SIZE = 65
 
     P_PERM = 1.
@@ -77,10 +76,10 @@ class Config:
     P_MASK = 1.
     N_MAX_MASK = 2
     W_MASK = (0, IMAGE_SIZE // 6)
-    
+
     MODEL_ID = "efficientnetv2-b0"
 
-### Plotting #################################################################
+    # Plotting #################################################################
     PLOT_EXAMPLE = False
     PLOT_TEST = False
-    PLOT_EXAMPLE_IDX = 98 #44438 in test can be perfectly seen
+    PLOT_EXAMPLE_IDX = 98  # 44438 in test can be perfectly seen

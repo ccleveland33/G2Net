@@ -1,21 +1,19 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Aug 26 10:51:16 2021
-
-@author: salva
+Created on Nov 18th, 2021
 """
 
-import pandas as pd
-import numpy as np
-import os
 import multiprocessing as mp
+import os
+from functools import partial
 from pathlib import Path
 from typing import Tuple
-from functools import partial
+
+import numpy as np
+import pandas as pd
 
 
 ##############################################################################
-
 class NPYDatasetCreator(object):
     """
     Class to aid in the creation of a preprocessed dataset in npy format.
@@ -29,8 +27,8 @@ class NPYDatasetCreator(object):
             data_stats: Tuple[float, float] = None,
             raw_dir: bool = False,
             ext_in: str = ".npy",
-  
-        ) -> None:
+
+    ) -> None:
         """
         Function to initialise the object.
         
@@ -66,12 +64,11 @@ class NPYDatasetCreator(object):
         else:
             self.df["path"] = str(datadir) + os.sep + dataframe["id"].astype(str) + ext_in
 
-
     def _preprocess_example(
-            self, 
+            self,
             idx,
             dtype: type = np.float16
-        ) -> np.ndarray:
+    ) -> np.ndarray:
         """
         Method to preprocess a single example.
         
@@ -87,10 +84,9 @@ class NPYDatasetCreator(object):
         data = np.load(self.df["path"][idx])
         data = data.T if self.trans else data
         if self.data_stats is not None:
-            data = (data - self.data_stats[0]) / self.data_stats[-1] 
+            data = (data - self.data_stats[0]) / self.data_stats[-1]
         data = data.astype(dtype)
         return data
-
 
     def _save_example(
             self,
@@ -98,7 +94,7 @@ class NPYDatasetCreator(object):
             destdir: Path,
             dtype: type = np.float16,
             ext_out: str = ".npy"
-        ) -> None:
+    ) -> None:
         """
         Method to preprocess a single example and save it.
         
@@ -115,9 +111,8 @@ class NPYDatasetCreator(object):
             Extension of the output files. The default is ".npy".
         """
         filename = destdir.joinpath(self.df["id"][idx] + ext_out)
-        data = self._preprocess_example(idx, dtype = dtype)
+        data = self._preprocess_example(idx, dtype=dtype)
         np.save(filename, data)
-
 
     def create_dataset(
             self,
@@ -125,7 +120,7 @@ class NPYDatasetCreator(object):
             dtype: type = np.float16,
             ext_out: str = ".npy",
             n_processes: int = 1
-        ) -> None:
+    ) -> None:
         """
         Method to create a full preprocessed dataset and write it to npy files.
         
@@ -146,10 +141,9 @@ class NPYDatasetCreator(object):
         n_cpus = np.maximum(n_processes, 0)
         n_cpus = np.minimum(n_cpus, mp.cpu_count())
 
-        destdir.mkdir(parents = True, exist_ok = True)
+        destdir.mkdir(parents=True, exist_ok=True)
 
         with mp.Pool(n_cpus) as pool:
-            writer = partial(self._save_example, destdir = destdir, 
-                         dtype = dtype, ext_out = ext_out)
+            writer = partial(self._save_example, destdir=destdir,
+                             dtype=dtype, ext_out=ext_out)
             pool.map(writer, self.df.index)
-

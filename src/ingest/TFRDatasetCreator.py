@@ -5,13 +5,14 @@ Created on Sat Aug 14 11:32:58 2021
 @author: salva
 """
 
-import pandas as pd
-import numpy as np
-import tensorflow as tf
 import os
+from functools import partial
 from pathlib import Path
 from typing import Union, Tuple
-from functools import partial
+
+import numpy as np
+import pandas as pd
+import tensorflow as tf
 
 
 ##############################################################################
@@ -30,7 +31,7 @@ class TFRDatasetCreator(object):
             raw_dir: bool = False,
             ext_in: str = ".npy",
 
-        ) -> None:
+    ) -> None:
         """
         Function to initialise the object.
 
@@ -66,11 +67,10 @@ class TFRDatasetCreator(object):
         else:
             self.df["path"] = str(datadir) + os.sep + dataframe["id"].astype(str) + ext_in
 
-
     @staticmethod
     def _bytes_feature(
             value: Union[np.ndarray, tf.Tensor, str]
-        ) -> tf.train.Feature:
+    ) -> tf.train.Feature:
         """
         Function to convert an array, string or tensor to a list of bytes feature
 
@@ -87,13 +87,12 @@ class TFRDatasetCreator(object):
 
         if isinstance(value, type(tf.constant(0))):
             value = value.numpy()
-        return tf.train.Feature(bytes_list = tf.train.BytesList(value = [value]))
-
+        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
 
     @staticmethod
     def _int_feature(
             value: Union[int, bool]
-        ) -> tf.train.Feature:
+    ) -> tf.train.Feature:
         """
         Function to convert a bool / enum / int / uint to an int feature.
         
@@ -108,14 +107,13 @@ class TFRDatasetCreator(object):
             The converted feature.
         """
 
-        return tf.train.Feature(int64_list = tf.train.Int64List(value = [value]))
-
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
     def _serialize_example(
-            self, 
+            self,
             idx: int,
             dtype: type = tf.float32
-        ) -> str:
+    ) -> str:
         """
         Method to serialise a single example.
         
@@ -138,21 +136,20 @@ class TFRDatasetCreator(object):
         target = self.df["target"][idx]
 
         data = data.T if self.trans else data
-        
-        if self.data_stats is not None:
-            data = (data - self.data_stats[0]) / self.data_stats[-1] 
 
-        data = tf.convert_to_tensor(data, dtype = dtype)
+        if self.data_stats is not None:
+            data = (data - self.data_stats[0]) / self.data_stats[-1]
+
+        data = tf.convert_to_tensor(data, dtype=dtype)
 
         feature = {
             "data": self._bytes_feature(tf.io.serialize_tensor(data)),
             "id": self._bytes_feature(identity.encode()),
             "target": self._int_feature(np.int(target))
         }
-        
-        example = tf.train.Example(features = tf.train.Features(feature = feature))
-        return example.SerializeToString()
 
+        example = tf.train.Example(features=tf.train.Features(feature=feature))
+        return example.SerializeToString()
 
     def _serialize_batch(
             self,
@@ -161,7 +158,7 @@ class TFRDatasetCreator(object):
             dtype: type = tf.float32,
             filename: str = "train",
             ext_out: str = ".tfrec"
-        ) -> None:
+    ) -> None:
         """
         Method to serialise a batch of examples and write it to tensorflow record.
         
@@ -184,13 +181,11 @@ class TFRDatasetCreator(object):
         """
 
         n_batch, batch = data
-        filename_batch = destdir.joinpath(filename + str(n_batch).zfill(3) 
+        filename_batch = destdir.joinpath(filename + str(n_batch).zfill(3)
                                           + "-" + str(batch.shape[0]) + ext_out)
         with tf.io.TFRecordWriter(str(filename_batch)) as writer:
             for idx in batch:
-                writer.write(self._serialize_example(idx, dtype = dtype))
-
-
+                writer.write(self._serialize_example(idx, dtype=dtype))
 
     def serialize_dataset(
             self,
@@ -199,7 +194,7 @@ class TFRDatasetCreator(object):
             dtype: type = tf.float32,
             filename: str = "train",
             ext_out: str = ".tfrec"
-        ) -> None:
+    ) -> None:
         """
         Method to serialise a the full dataset and write it to a set of 
         tensorflow records.
@@ -220,17 +215,16 @@ class TFRDatasetCreator(object):
             Extension of the output files. The default is ".tfrec".
         """
 
-        destdir.mkdir(parents = True, exist_ok = True)
+        destdir.mkdir(parents=True, exist_ok=True)
 
         n_files = np.int32(np.ceil(self.df.shape[0] / n_samples))
 
-        for n_batch, batch in enumerate(np.array_split(self.df.index, n_files)): 
-            print("Writing TFRecord " + str(n_batch) + " with files from " + 
+        for n_batch, batch in enumerate(np.array_split(self.df.index, n_files)):
+            print("Writing TFRecord " + str(n_batch) + " with files from " +
                   str(batch[0]) + " to " + str(batch[-1]))
-            writer = partial(self._serialize_batch, destdir = destdir, 
-                         dtype = dtype, filename = filename, ext_out = ext_out)
+            writer = partial(self._serialize_batch, destdir=destdir,
+                             dtype=dtype, filename=filename, ext_out=ext_out)
             writer((n_batch, batch))
-
 
     @staticmethod
     def deserialize_example(
@@ -238,7 +232,7 @@ class TFRDatasetCreator(object):
             dtype: type = tf.float32,
             target: bool = False,
             shape: Tuple[int, int] = (4096, 3)
-        ) -> Tuple[tf.Tensor, int]:
+    ) -> Tuple[tf.Tensor, int]:
         """
         Method intended to be used in any dataset generator to deserialise the 
         examples from tensorflow records.
@@ -263,25 +257,24 @@ class TFRDatasetCreator(object):
         """
 
         feature = {
-            "data"  : tf.io.FixedLenFeature([], tf.string),
-            "id" : tf.io.FixedLenFeature([], tf.string),
-            "target" : tf.io.FixedLenFeature([], tf.int64)
+            "data": tf.io.FixedLenFeature([], tf.string),
+            "id": tf.io.FixedLenFeature([], tf.string),
+            "target": tf.io.FixedLenFeature([], tf.int64)
         }
 
         content = tf.io.parse_single_example(element, feature)
- 
-        data = content["data"]
-        data = tf.io.parse_tensor(data, out_type = dtype)
-        data = tf.reshape(data, shape = shape)
 
-        idx = tf.cast(tf.strings.unicode_decode(content["id"], "UTF-8"), 
-                      dtype = tf.int32)
-        label = tf.cast(content["target"] , dtype)
-        
+        data = content["data"]
+        data = tf.io.parse_tensor(data, out_type=dtype)
+        data = tf.reshape(data, shape=shape)
+
+        idx = tf.cast(tf.strings.unicode_decode(content["id"], "UTF-8"),
+                      dtype=tf.int32)
+        label = tf.cast(content["target"], dtype)
+
         if target:
             return data, label
         else:
             return data, idx
-
 
 ##############################################################################
