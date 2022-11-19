@@ -2,7 +2,6 @@
 """
 Created on Nov 18th, 2021
 """
-
 import tensorflow as tf
 from tensorflow.python.client import device_lib
 

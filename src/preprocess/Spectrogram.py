@@ -15,8 +15,6 @@ from utilities import GeneralUtilities
 
 
 ##############################################################################
-
-
 class CQTLayer(tf.keras.layers.Layer):
     """
     Constant-Q Transform keras layer. Based on the nnaudio implementation 
@@ -134,7 +132,6 @@ class CQTLayer(tf.keras.layers.Layer):
 
         cqt_kernels_real = np.swapaxes(cqt_kernels.real[:, np.newaxis, :], 0, -1)
         cqt_kernels_imag = np.swapaxes(cqt_kernels.imag[:, np.newaxis, :], 0, -1)
-
         self.cqt_kernels_real = tf.Variable(initial_value=cqt_kernels_real,
                                             trainable=self.trainable,
                                             name=self.name + "/real_kernels",
@@ -210,11 +207,7 @@ class CQTLayer(tf.keras.layers.Layer):
 
         super(CQTLayer, self).build(input_shape)
 
-    def call(
-            self,
-            data: tf.Tensor,
-            training: bool = None
-    ) -> tf.Tensor:
+    def call(self, data: tf.Tensor, training: bool = None) -> tf.Tensor:
         """
         Forward pass of the layer.
 
@@ -269,7 +262,6 @@ class CQTLayer(tf.keras.layers.Layer):
             min_val = tf.stop_gradient(self.min)
             max_val = tf.stop_gradient(self.max + self.perc_range * r_minmax)
             CQT = (CQT - min_val) / (max_val - min_val)
-
             CQT = tf.clip_by_value(CQT, clip_value_min=0., clip_value_max=1.)
 
         return CQT
@@ -285,31 +277,27 @@ class CQTLayer(tf.keras.layers.Layer):
         Mapping[str, float]
             Dictionary containing the configuration parameters of the object.
         """
-        config = {
-            "sample_rate": self.sample_rate,
-            "n_bins": self.n_bins,
-            "hop_length": self.hop_length,
-            "bins_per_octave": self.bins_per_octave,
-            "f_band": self.f_band,
-            "norm": self.norm,
-            "filter_scale": self.filter_scale,
-            "window": self.window,
-            "center": self.center,
-            "pad_mode": self.pad_mode,
-            "norm_type": self.norm_type,
-            "perc_range": self.perc_range,
-            "image_out": self.image_out,
-            "minmax_init": self.minmax_init,
-            "tpu": self.tpu
-        }
+        config = {"sample_rate": self.sample_rate,
+                  "n_bins": self.n_bins,
+                  "hop_length": self.hop_length,
+                  "bins_per_octave": self.bins_per_octave,
+                  "f_band": self.f_band,
+                  "norm": self.norm,
+                  "filter_scale": self.filter_scale,
+                  "window": self.window,
+                  "center": self.center,
+                  "pad_mode": self.pad_mode,
+                  "norm_type": self.norm_type,
+                  "perc_range": self.perc_range,
+                  "image_out": self.image_out,
+                  "minmax_init": self.minmax_init,
+                  "tpu": self.tpu}
 
         config.update(super(CQTLayer, self).get_config())
         return config
 
 
 ##############################################################################
-
-
 class _Utilities(object):
     """
     Class with local auxiliary functions.
@@ -367,7 +355,6 @@ class _Utilities(object):
         """
 
         f_min, f_max = f_band[0], f_band[-1]
-
         len_min = np.ceil(q * sample_rate / f_min)
         fft_len = 2 ** np.int(np.ceil(np.log2(len_min)))
 
@@ -408,5 +395,4 @@ class _Utilities(object):
                 kernel[k, start:start + np.int(l)] = sig
 
         return kernel, fft_len, lengths, freqs
-
 ##############################################################################

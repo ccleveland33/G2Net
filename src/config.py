@@ -1,21 +1,15 @@
 # -*- coding: utf-8 -*-
 """
-Created on Sun Aug  1 19:38:30 2021
-
-@author: salva
+Created on Nov 18th, 2021
 """
-
 from pathlib import Path
-
 
 class Config:
     # General data #############################################################
     RAW_DATA_PATH = Path(".", "..", "raw_data")
     RAW_TRAIN_PATH = RAW_DATA_PATH.joinpath("train")
     RAW_TEST_PATH = RAW_DATA_PATH.joinpath("test")
-
     N_PROCESSES = 8
-
     N_SAMPLES, N_DETECT = 4096, 3
 
     # Data preprocessing #######################################################
@@ -70,13 +64,10 @@ class Config:
     TRAINABLE_CQT = True
 
     IMAGE_SIZE = 65
-
     P_PERM = 1.
-
     P_MASK = 1.
     N_MAX_MASK = 2
     W_MASK = (0, IMAGE_SIZE // 6)
-
     MODEL_ID = "efficientnetv2-b0"
 
     # Plotting #################################################################

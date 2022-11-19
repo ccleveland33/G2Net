@@ -4,7 +4,6 @@ Created on Wed Jul 28 09:51:33 2021
 
 @author: salva
 """
-
 import multiprocessing as mp
 from functools import partial
 from pathlib import Path
@@ -16,7 +15,6 @@ import tensorflow as tf
 
 
 ##############################################################################
-
 class GeneralUtilities(object):
     """
     General utilities class.
@@ -338,5 +336,4 @@ class GeneralUtilities(object):
             raise ValueError("Only support input with shape = (n_batch, n_samples) \
                              or shape = (n_samples)")
         return x
-
 ##############################################################################

@@ -2,7 +2,6 @@
 """
 Created on Nov 18th, 2021
 """
-
 # Import configuration modules
 import sys
 from pathlib import Path

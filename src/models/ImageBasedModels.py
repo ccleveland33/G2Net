@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Jul 28 16:27:02 2021
-
-@author: salva
+Created on Nov 18th, 2021
 """
 
 import copy
