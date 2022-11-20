@@ -181,10 +181,7 @@ class CQTLayer(tf.keras.layers.Layer):
                                name=self.name + "/min",
                                dtype=self.dtype)
 
-    def build(
-            self,
-            input_shape: Tuple[int, int]
-    ) -> None:
+    def build(self, input_shape: Tuple[int, int]) -> None:
         """
         Function to build the graph of the layer. Adds trainable and non-
         trainable parameters.
@@ -194,7 +191,6 @@ class CQTLayer(tf.keras.layers.Layer):
         input_shape : Tuple[int, int]
             Shape of the input to the layer.
         """
-
         if self.trainable:
             self.trainable_weights.append(self.cqt_kernels_real)
             self.trainable_weights.append(self.cqt_kernels_imag)
@@ -224,7 +220,6 @@ class CQTLayer(tf.keras.layers.Layer):
         tf.Tensor, shape = (None, n_freq, n_time, n_detectors)
             The corresponding batch of constant Q transforms.
         """
-
         CQT = []
         for i in range(data.get_shape()[-1]):
             x = data[..., i]
@@ -266,9 +261,7 @@ class CQTLayer(tf.keras.layers.Layer):
 
         return CQT
 
-    def get_config(
-            self
-    ) -> Mapping[str, float]:
+    def get_config(self) -> Mapping[str, float]:
         """
         Function to get the configuration parameters of the object.
         
@@ -295,7 +288,6 @@ class CQTLayer(tf.keras.layers.Layer):
 
         config.update(super(CQTLayer, self).get_config())
         return config
-
 
 ##############################################################################
 class _Utilities(object):
@@ -353,7 +345,6 @@ class _Utilities(object):
             CQT kernels, length of the frequency bins and associated 
             frequencies.
         """
-
         f_min, f_max = f_band[0], f_band[-1]
         len_min = np.ceil(q * sample_rate / f_min)
         fft_len = 2 ** np.int(np.ceil(np.log2(len_min)))

@@ -50,8 +50,7 @@ if __name__ == "__main__":
     # Create preprocessed tensorflow records dataset if requested
     if Config.GENERATE_TFR:
         train_df_random = train_df_ori.sample(frac=1, random_state=Config.SEED_SPLIT).reset_index(drop=True)
-        tfr_train = TFRDatasetCreator(train_df_random, Config.RAW_TRAIN_PATH, data_stats=wave_stats, trans=True,
-                                      raw_dir=True)
+        tfr_train = TFRDatasetCreator(train_df_random, Config.RAW_TRAIN_PATH, data_stats=wave_stats, trans=True, raw_dir=True)
         tfr_test = TFRDatasetCreator(test_df_ori, Config.RAW_TEST_PATH, data_stats=wave_stats, trans=True, raw_dir=True)
         tfr_train.serialize_dataset(Config.FILES_PER_TFR, Config.TFR_TRAIN_PATH, filename="train", dtype=dtype)
         tfr_test.serialize_dataset(Config.FILES_PER_TFR, Config.TFR_TEST_PATH, filename="test", dtype=dtype)
