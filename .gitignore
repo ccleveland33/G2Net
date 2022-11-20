@@ -13,3 +13,10 @@ src/ingest/__pycache__
 src/models/__pycache__
 src/train/__pycache__
 src/utilities/__pycache__
+tfrecords/tfr_effnet/efficientnet-b7/checkpoint
+tfrecords/tfr_effnet/efficientnet-b7/model.ckpt.data-00000-of-00001
+*.index
+*.meta
+*.data-00000-of-00001
+*.tfrec
+*.csv
