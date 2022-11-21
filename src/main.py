@@ -57,8 +57,7 @@ if __name__ == "__main__":
 
     # Create preprocessed numpy dataset if requested
     if Config.GENERATE_NPY:
-        npy_train = NPYDatasetCreator(train_df_ori, Config.RAW_TRAIN_PATH, data_stats=wave_stats, trans=True,
-                                      raw_dir=True, target=True)
+        npy_train = NPYDatasetCreator(train_df_ori, Config.RAW_TRAIN_PATH, data_stats=wave_stats, trans=True,raw_dir=True, target=True)
         npy_test = NPYDatasetCreator(test_df_ori, Config.RAW_TEST_PATH, data_stats=wave_stats, trans=True, raw_dir=True)
         npy_train.create_dataset(Config.TRAIN_PATH, dtype=np.float32, n_processes=Config.N_PROCESSES)
         npy_test.create_dataset(Config.TEST_PATH, dtype=np.float32, n_processes=Config.N_PROCESSES)
@@ -76,8 +75,7 @@ if __name__ == "__main__":
         validation_df = train_df.loc[n_split:, :]
 
         training_gen = DatasetGeneratorTF(training_df, Config.TFR_TRAIN_PATH, batch_size=Config.BATCH_SIZE, dtype=dtype)
-        validation_gen = DatasetGeneratorTF(validation_df, Config.TFR_TRAIN_PATH, batch_size=Config.BATCH_SIZE,
-                                            dtype=dtype)
+        validation_gen = DatasetGeneratorTF(validation_df, Config.TFR_TRAIN_PATH, batch_size=Config.BATCH_SIZE, dtype=dtype)
         test_gen = DatasetGeneratorTF(test_df, Config.TFR_TEST_PATH, batch_size=Config.BATCH_SIZE_TEST, dtype=dtype)
 
         training_ds = training_gen.get_dataset()

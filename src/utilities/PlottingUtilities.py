@@ -12,9 +12,7 @@ import pandas as pd
 import seaborn as sns
 
 
-##############################################################################
-
-
+#############################################################################
 class PlottingUtilities(object):
     """
     Plotting utilities class.
@@ -26,11 +24,7 @@ class PlottingUtilities(object):
     detector = ("LIGO Hanford", "LIGO Livingston", "Virgo")
 
     @classmethod
-    def plot_wave(
-            cls,
-            waveforms: np.ndarray,
-            timespan: float = 2.
-    ) -> None:
+    def plot_wave(cls, waveforms: np.ndarray,timespan: float = 2.) -> None:
         """
         Function to plot waves from the 3 detectors.
 
@@ -62,11 +56,7 @@ class PlottingUtilities(object):
             axes[i].set_ylim(min_val, max_val)
 
     @classmethod
-    def plot_spectrogram(
-            cls,
-            spectrogram: np.ndarray,
-            **kwargs
-    ) -> None:
+    def plot_spectrogram(cls, spectrogram: np.ndarray, **kwargs) -> None:
         """
         Function to plot a spectrogram.
 
